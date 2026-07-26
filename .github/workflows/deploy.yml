@@ -21,7 +21,6 @@ jobs:
       uses: actions/checkout@v4
 
 
-
     - name: Deploy MySQL Redis Nginx on EC2
 
       uses: appleboy/ssh-action@v1.0.3
@@ -37,12 +36,10 @@ jobs:
 
         script: |
 
-
           echo "========== Deployment Started =========="
 
 
-          cd /opt/intbuddy/IntBuddyDeployment
-
+          cd /opt/intbuddy/deployment
 
 
           echo "Pulling latest changes"
