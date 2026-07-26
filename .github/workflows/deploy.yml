@@ -1,0 +1,96 @@
+name: Deploy Infrastructure
+
+on:
+  push:
+    branches:
+      - main
+
+  workflow_dispatch:
+
+
+jobs:
+
+  deploy:
+
+    runs-on: ubuntu-latest
+
+
+    steps:
+
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+
+
+    - name: Deploy MySQL Redis Nginx on EC2
+
+      uses: appleboy/ssh-action@v1.0.3
+
+      with:
+
+        host: ${{ secrets.EC2_HOST }}
+
+        username: ubuntu
+
+        key: ${{ secrets.EC2_SSH_KEY }}
+
+
+        script: |
+
+
+          echo "========== Deployment Started =========="
+
+
+          cd /opt/intbuddy/IntBuddyDeployment
+
+
+
+          echo "Pulling latest changes"
+
+          git pull origin main
+
+
+
+          echo "Creating Docker network"
+
+          docker network create intbuddy-network || true
+
+
+
+          echo "Deploying MySQL"
+
+          cd mysql
+
+          docker compose pull
+
+          docker compose up -d
+
+
+
+          echo "Deploying Redis"
+
+          cd ../redis
+
+          docker compose pull
+
+          docker compose up -d
+
+
+
+          echo "Deploying Nginx"
+
+          cd ../nginx
+
+          docker compose pull
+
+          docker compose up -d
+
+
+
+          echo "Checking running containers"
+
+          docker ps
+
+
+
+          echo "========== Deployment Completed =========="
