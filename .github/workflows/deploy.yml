@@ -50,39 +50,47 @@ jobs:
 
           echo "Pulling latest changes"
 
-          git pull origin main
+          # reset (not pull) so tracked files deleted on the host are restored;
+          # untracked env/ and volumes/ are left untouched
+          git fetch origin main
+
+          git reset --hard origin/main
 
 
 
           echo "Creating Docker network"
 
-          docker network create intbuddy-network || true
+          docker network inspect intbuddy-network >/dev/null 2>&1 || docker network create intbuddy-network
 
 
 
-          echo "Deploying MySQL"
+          # Stateful services: only start them if they are not already running,
+          # so a deploy never recreates the database or cache
+          if [ "$(docker inspect -f '{{.State.Running}}' intbuddy-mysql 2>/dev/null)" = "true" ]; then
+            echo "MySQL already running - skipping"
+          else
+            echo "Deploying MySQL"
+            docker compose -f mysql/docker-compose.mysql.yml up -d
+          fi
 
-          cd mysql
-
-          docker compose -f docker-compose.mysql.yml pull
-
-          docker compose -f docker-compose.mysql.yml up -d
 
 
+          if [ "$(docker inspect -f '{{.State.Running}}' intbuddy-redis 2>/dev/null)" = "true" ]; then
+            echo "Redis already running - skipping"
+          else
+            echo "Deploying Redis"
+            docker compose -f redis/docker-compose.redis.yml up -d
+          fi
 
-          echo "Deploying Redis"
 
-          cd ../redis
 
-          docker compose -f docker-compose.redis.yml pull
-
-          docker compose -f docker-compose.redis.yml up -d
+          cd /opt/intbuddy/deployment
 
 
 
           echo "Deploying Nginx"
 
-          cd ../nginx
+          cd nginx
 
           docker compose pull
 

@@ -43,11 +43,16 @@ clone_or_update IntBuddyDeployment "$DEPLOY_DIR"
 clone_or_update IntBuddyBackend    "$BASE/IntBuddyBackend"
 clone_or_update IntBuddy_Frontend  "$BASE/IntBuddy_Frontend"
 
+is_running() {
+  [ "$(docker inspect -f '{{.State.Running}}' "$1" 2>/dev/null)" = "true" ]
+}
+
+# Never recreate the stateful services if they are already up
 echo "== MySQL"
-docker compose -f "$DEPLOY_DIR/mysql/docker-compose.mysql.yml" up -d
+is_running intbuddy-mysql && echo "already running" || docker compose -f "$DEPLOY_DIR/mysql/docker-compose.mysql.yml" up -d
 
 echo "== Redis"
-docker compose -f "$DEPLOY_DIR/redis/docker-compose.redis.yml" up -d
+is_running intbuddy-redis && echo "already running" || docker compose -f "$DEPLOY_DIR/redis/docker-compose.redis.yml" up -d
 
 echo "== Backend"
 docker compose -f "$BASE/IntBuddyBackend/docker-compose.yml" pull
