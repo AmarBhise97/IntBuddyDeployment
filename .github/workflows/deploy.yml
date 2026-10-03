@@ -36,8 +36,14 @@ jobs:
 
         script: |
 
+          set -e
+
           echo "========== Deployment Started =========="
 
+
+          if [ ! -d /opt/intbuddy/deployment/.git ]; then
+            git clone https://github.com/AmarBhise97/IntBuddyDeployment.git /opt/intbuddy/deployment
+          fi
 
           cd /opt/intbuddy/deployment
 
@@ -58,9 +64,9 @@ jobs:
 
           cd mysql
 
-          docker compose pull
+          docker compose -f docker-compose.mysql.yml pull
 
-          docker compose up -d
+          docker compose -f docker-compose.mysql.yml up -d
 
 
 
@@ -68,9 +74,9 @@ jobs:
 
           cd ../redis
 
-          docker compose pull
+          docker compose -f docker-compose.redis.yml pull
 
-          docker compose up -d
+          docker compose -f docker-compose.redis.yml up -d
 
 
 
@@ -80,7 +86,7 @@ jobs:
 
           docker compose pull
 
-          docker compose up -d
+          docker compose up -d --force-recreate
 
 
 
