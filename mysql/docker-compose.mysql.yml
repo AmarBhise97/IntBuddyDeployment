@@ -4,6 +4,12 @@ services:
     container_name: intbuddy-mysql
     restart: unless-stopped
 
+    # Keep MySQL small enough to share a small EC2 instance with the backend
+    command:
+      - --performance-schema=OFF
+      - --innodb-buffer-pool-size=128M
+      - --max-connections=50
+
     env_file:
       - ../env/mysql.env
 
